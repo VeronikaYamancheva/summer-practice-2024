@@ -3,11 +3,12 @@ package ru.itis.shop.users.repositories.impl;
 import ru.itis.shop.users.models.User;
 import ru.itis.shop.users.repositories.UsersRepository;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Shop
@@ -34,21 +35,60 @@ public class UsersRepositoryFileImpl implements UsersRepository {
 
     @Override
     public List<User> findAll() {
-        return null;
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            return reader.lines()
+                    .map(line -> line.split("\\|"))
+                    .filter(userFieldsArray -> userFieldsArray.length == 4)
+                    .map(userFieldsArray -> new User(userFieldsArray[0], userFieldsArray[1], userFieldsArray[2], userFieldsArray[3]))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new IllegalStateException();
+        }
     }
 
     @Override
     public void update(User user) {
-
+        List<User> users = findAll();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            for (User processUser : users) {
+                if (!processUser.getId().equals(user.getId())) {
+                    writer.write(processUser.getId() + "|" + processUser.getName() + "|" + processUser.getEmail() + "|" + processUser.getPassword());
+                    writer.newLine();
+                } else {
+                    writer.write(user.getId() + "|" + user.getName() + "|" + user.getEmail() + "|" + user.getPassword());
+                    writer.newLine();
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
     public void delete(String id) {
-
+        List<User> users = findAll();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            for (User user : users) {
+                if (!user.getId().equals(id)) {
+                    writer.write(user.getId() + "|" + user.getName() + "|" + user.getEmail() + "|" + user.getPassword());
+                    writer.newLine();
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
     public Optional<User> findById(String id) {
-        return Optional.empty();
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            return reader.lines()
+                    .map(line -> line.split("\\|"))
+                    .filter(userFieldsArray -> userFieldsArray[0].equals(id))
+                    .map(userFieldsArray -> new User(userFieldsArray[0], userFieldsArray[1], userFieldsArray[2], userFieldsArray[3]))
+                    .findFirst();
+        } catch (IOException e) {
+            throw new IllegalStateException();
+        }
     }
 }
