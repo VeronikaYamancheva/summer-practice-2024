@@ -22,7 +22,7 @@ public class Main {
         EmailValidator emailValidator = new SimpleEmailValidator();
         UsersService usersService = new UsersService(usersRepository, emailValidator);
         UsersUIConsole ui = new UsersUIConsole(usersService);
-        //ui.printRegistrationMenu();
+        ui.printRegistrationMenu();
 
         Optional<User> userFoundedById = usersRepository.findById("fecfb50f-584b-44ee-8d63-0edfa5361e22");//marsel
         System.out.println(userFoundedById);
